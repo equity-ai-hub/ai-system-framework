@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "equitable-ai-framework"
+version = "0.1.0"
+description = ""
+authors = [{name="Jane Doe", email="janedoe@mail.com"}]
+readme = "README.md"
+license = { "text"= "MIT" } 
+requires-python = ">=3.9,<3.13"
+
+dependencies = [
+    "scipy>=1.11.2",
+    "seaborn>=0.12.2",
+    "pandas>=2.0.3",
+    "numpy>=1.25.2",
+    "scikit-learn>=1.3.0",
+    "imblearn>=0.0",
+    "xgboost>=2.0.0",
+    "aif360>=0.5.0",
+    "blackboxauditing>=0.1.54",
+    "folktables>=0.0.12",
+    "pre-commit>=3.6.2",
+    "setuptools>=40.8.0",
+    "packaging>=2.0",
+    "python-dotenv>=1.0.1",
+    "gcloud>=0.18.3",
+    "google>=3.0.0",
+    "google-cloud-storage>=2.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.9.1",
+    "flake8>=6.1.0",
+    "isort>=5.12.0",
+    "jupyter>=1.0.0",
+    "matplotlib>=3.7.3",
+    "PyYAML>=6.0.1",
+    "seaborn>=0.12.2",
+    "tdqm>=0.0.1",
+    "dataframe-image>=0.2.1",
+    "plotly>=5.16.1",
+    "setuptools_scm>=8.0.1",
+    "joblib>=1.3.2",
+    "ydata-profiling>=4.7.0",
+    "sweetviz>=2.3.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.setuptools_scm]
+write_to = "src/_version.py"
+write_to_template = '__version__ = "{version}"\n'
