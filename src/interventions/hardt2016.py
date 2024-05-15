@@ -9,7 +9,6 @@ from sklearn.metrics import balanced_accuracy_score
 
 import src.interventions.utils as utils
 from src.algorithms.eq_odds_postprocessing import EqOddsPostprocessing
-from src.gcs import CloudStorageData
 from src.metrics import Metrics
 
 
@@ -17,7 +16,6 @@ def threshold_modification(
     dataset_id: str,
     selected_model: str,
     num_folds: int,
-    data_storage: str,
     local_data_path: str = None,
     **kwargs,
 ):
@@ -43,17 +41,9 @@ def threshold_modification(
         None
     """
     # DATA
-    if data_storage == "cloud":
-        test_oh = kwargs["ti"].xcom_pull(
-            dag_id="03_fairness_interventions", task_ids="load_test_dataset", key=f"df_{dataset_id}_test_oh"
-        )
-        test_preproc = kwargs["ti"].xcom_pull(
-            dag_id="03_fairness_interventions", task_ids="load_test_dataset", key=f"df_{dataset_id}_test"
-        )
-    elif data_storage == "local":
-        from src.acs_baseline.acs_pipeline_functions import load_dataset
+    from src.acs_baseline.acs_pipeline_functions import load_dataset
 
-        test_oh, test_preproc = load_dataset(dataset_id, "test", local_data_path)
+    test_oh, test_preproc = load_dataset(dataset_id, "test", local_data_path)
 
     # Standardize the data to be used with AIF360 algorithms
     test_standard = StandardDataset(
@@ -70,11 +60,8 @@ def threshold_modification(
 
     # run the intervention for each fold - 10 iterations
     for fold in range(num_folds):
-        if data_storage == "cloud":
-            _, val_oh, baseline_model = utils._get_model_and_data(dataset_id, selected_model, fold)
-        else:
-            path = f"{local_data_path}/artifacts/acs_{dataset_id}/{selected_model}"
-            _, val_oh, baseline_model = utils._get_model_and_data_local(selected_model, fold, path)
+        path = f"{local_data_path}/artifacts/acs_{dataset_id}/{selected_model}"
+        _, val_oh, baseline_model = utils._get_model_and_data_local(selected_model, fold, path)
 
         # Standardize the data to be used with AIF360 algorithms
         val_standard = StandardDataset(
@@ -124,38 +111,9 @@ def threshold_modification(
             df=test_preproc, y_pred=test_standard_pred_pp.labels
         )
 
-    if data_storage == "cloud":
-        gcs = CloudStorageData(gcs_bucket="research-acs-data")
+    eval_path = f"{local_data_path}/evaluation/hardt2016/{dataset_id}"
+    os.makedirs(eval_path, exist_ok=True)
 
-        path_dir = f"evaluation/hardt2016"
-        scores_in_memory_file = io.BytesIO()
-        np.save(scores_in_memory_file, metrics_scores)
-        gcs.upload_to_gcs(
-            gcs_path=f"{path_dir}/{dataset_id}/{selected_model}_scores_separation.npy",
-            data_to_upload=scores_in_memory_file.getvalue(),
-            mime_type="application/octet-stream",
-        )
-
-        cond_scores_in_memory_file = io.BytesIO()
-        np.save(cond_scores_in_memory_file, conditional_scores)
-        gcs.upload_to_gcs(
-            gcs_path=f"{path_dir}/{dataset_id}/{selected_model}_conditional_scores_separation.npy",
-            data_to_upload=cond_scores_in_memory_file.getvalue(),
-            mime_type="application/octet-stream",
-        )
-
-        gcs.upload_to_gcs(
-            gcs_path=f"{path_dir}/{dataset_id}/{selected_model}_separation_predictions.csv",
-            data_to_upload=intv_predictions.to_csv(index=False, encoding="utf-8"),
-            mime_type="text/csv",
-        )
-    elif data_storage == "local":
-        eval_path = f"{local_data_path}/evaluation/hardt2016/{dataset_id}"
-        os.makedirs(eval_path, exist_ok=True)
-
-        intv_predictions.to_csv(
-            f"{eval_path}/{selected_model}_separation_predictions.csv", index=False, encoding="utf-8"
-        )
-        np.save(f"{eval_path}/{selected_model}_scores_separation.npy", metrics_scores)
-        np.save(f"{eval_path}/{selected_model}_conditional_scores_separation.npy", conditional_scores)
-        # return metrics_scores, conditional_scores, intv_predictions
+    intv_predictions.to_csv(f"{eval_path}/{selected_model}_separation_predictions.csv", index=False, encoding="utf-8")
+    np.save(f"{eval_path}/{selected_model}_scores_separation.npy", metrics_scores)
+    np.save(f"{eval_path}/{selected_model}_conditional_scores_separation.npy", conditional_scores)
