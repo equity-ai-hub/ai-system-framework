@@ -3,7 +3,6 @@ FROM apache/airflow:slim-2.9.0-python3.9
 COPY pyproject.toml .
 COPY setup.py .
 
-COPY credentials/ .
 COPY src/ src/
 
 RUN pip install --no-cache-dir --upgrade pip
