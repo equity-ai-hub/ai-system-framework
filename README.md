@@ -17,5 +17,5 @@ docker compose up airflow-init
 docker compose up -d
 ```
 
-Acess the airflow in localhost:8080
-User and password to log in the UI: `airflow`
+Acess the airflow in `localhost:8080`
+Username and password to log in the UI: `airflow`
