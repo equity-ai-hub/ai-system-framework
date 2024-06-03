@@ -13,4 +13,3 @@ RUN pip install --no-cache-dir apache-airflow[google,postgres]==${AIRFLOW_VERSIO
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 USER 0
-

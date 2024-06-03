@@ -188,4 +188,3 @@ class Metrics:
         # upper_ci = np.abs(mean - ci[1]).round(4)
         ci = f"+/- {lower_ci}"
         return ci
-        return ci
