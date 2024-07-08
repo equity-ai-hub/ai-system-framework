@@ -34,7 +34,7 @@ class Model:
     def _initialize_model(self, model_name: str):
         models = {
             "logistic_regression": LogisticRegression(solver="liblinear", max_iter=1000),  # liblinear to COMPAS
-            # "mlp": MLPClassifier(max_iter=1000),
+            "mlp": MLPClassifier(hidden_layer_sizes=(5,), max_iter=1000, alpha=0.01, random_state=42),
             "random_forest": RandomForestClassifier(),
             "svm": SVC(),
             "xgboost": XGBClassifier(),

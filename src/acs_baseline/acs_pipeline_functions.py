@@ -10,11 +10,8 @@ import pandas as pd
 
 from src.acs import ACSDataset
 
-ROOT_PATH = str(Path(__file__).parent.parent)
-DATA_PATH = f"{ROOT_PATH}/data"
-ARTIFACTS_PATH = f"{DATA_PATH}/artifacts"
-warnings.filterwarnings("ignore")
 
+warnings.filterwarnings("ignore")
 
 def split_dataset(df, test_size=0.2, random_state=42, stratify=None):
     from sklearn.model_selection import train_test_split
@@ -32,19 +29,19 @@ def export_csv(df, path, file_name):
     df.to_csv(f"{path}/{file_name}", index=False, encoding="utf-8")
 
 
-def download_acs_data(acs_task: str = "employment"):
+def download_acs_data(acs_task: str = "employment", data_path: str = None):
     acs = ACSDataset()
     features = acs.get_data(download=True, task_name=acs_task)
 
     # local path to save raw data
-    PATH_RAW_DATA = f"{ROOT_PATH}/data/acs_{acs_task}/raw"
+    PATH_RAW_DATA = f"{data_path}/acs_{acs_task}/raw"
     os.makedirs(PATH_RAW_DATA, exist_ok=True)
 
     print(f"Saving raw data to {PATH_RAW_DATA}")
     save_obj_to_csv_file(features, PATH_RAW_DATA, f"acs_{acs_task}.csv")
 
 
-def process_acs_data(acs_task: str = "employment"):
+def process_acs_data(acs_task: str = "employment", data_path: str = None):
     """Read raw data, split it into train and test sets, and save them in the processed folder.
 
     Args:
@@ -55,14 +52,14 @@ def process_acs_data(acs_task: str = "employment"):
     Raises:
         ValueError: [description]
     """
-    PATH_RAW_DATA = f"{ROOT_PATH}/data/acs_{acs_task}/raw"
+    PATH_RAW_DATA = f"{data_path}/acs_{acs_task}/raw"
     # raise ValueError("Path to raw data is missing")
     df_acs = pd.read_csv(f"{PATH_RAW_DATA}/acs_{acs_task}.csv")
 
     acs = ACSDataset()
     train_csv, test_csv = acs.split_data(df=df_acs)
 
-    PATH_TO_PROCESS_DATA = f"{ROOT_PATH}/data/acs_{acs_task}/processed"
+    PATH_TO_PROCESS_DATA = f"{data_path}/acs_{acs_task}/processed"
     os.makedirs(PATH_TO_PROCESS_DATA, exist_ok=True)
 
     # save dataframe splitted data locally

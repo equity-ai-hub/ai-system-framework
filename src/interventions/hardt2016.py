@@ -34,7 +34,6 @@ def threshold_modification(
         dataset_id (str): The dataset id.
         selected_model (str): The selected model.
         num_folds (int): The number of folds.
-        data_storage (str): The data storage.
         local_data_path (str): The local data path.
         **kwargs: The keyword arguments.
     Returns:
