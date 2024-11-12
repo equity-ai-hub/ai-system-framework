@@ -1,14 +1,13 @@
 import numpy as np
 from scipy import stats
 from sklearn.metrics import (
-    accuracy_score,
     balanced_accuracy_score,
     classification_report,
     confusion_matrix,
     f1_score,
-    precision_score,
-    recall_score,
     roc_auc_score,
+    # roc_curve,
+    # precision_recall_curve,
 )
 
 
@@ -16,17 +15,52 @@ class Metrics:
     @staticmethod
     def calculate_metrics(y_true, y_pred):
         return {
-            "acc": accuracy_score(y_true, y_pred),
-            "bal_acc": balanced_accuracy_score(y_true, y_pred),
-            "f1": f1_score(y_true, y_pred),
-            "f1_macro": f1_score(y_true, y_pred, average="macro"),
-            "precision": precision_score(y_true, y_pred),
-            "recall": recall_score(y_true, y_pred),
-            "roc_auc": roc_auc_score(y_true, y_pred),
+            # "acc": accuracy_score(y_true, y_pred),
+            # "bal_acc": balanced_accuracy_score(y_true, y_pred),
+            "F1": f1_score(y_true, y_pred),
+            "F1_MACRO": f1_score(y_true, y_pred, average="macro"),
+            # "precision": precision_score(y_true, y_pred),
+            # "recall": recall_score(y_true, y_pred),
+            "ROC_AUC": roc_auc_score(y_true, y_pred),
+            # "ROC_CURVE": roc_curve(y_true, y_pred),
+            # "PR_CURVE": precision_recall_curve(y_true, y_pred),
         }
 
     @staticmethod
-    def conditional_metrics_scores_aif360(df, y_pred, unprivileged_groups=None, privileged_groups=None):
+    def overall_accuracy_equality(df, labels_col, preds_col, sensitive_col):
+        # Separate privileged and unprivileged groups
+        privileged_group = df[df[sensitive_col] == 0]  # Male (s = 0)
+        unprivileged_group = df[df[sensitive_col] == 1]  # Female (s = 1)
+
+        # Calculate probabilities for privileged group (s = 0)
+        P_priv_0_given_0 = ((privileged_group[labels_col] == 0) & (privileged_group[preds_col] == 0)).sum() / (
+            privileged_group[labels_col] == 0
+        ).sum()
+        P_priv_1_given_1 = ((privileged_group[labels_col] == 1) & (privileged_group[preds_col] == 1)).sum() / (
+            privileged_group[labels_col] == 1
+        ).sum()
+
+        # Calculate probabilities for unprivileged group (s = 1)
+        P_unpriv_0_given_0 = ((unprivileged_group[labels_col] == 0) & (unprivileged_group[preds_col] == 0)).sum() / (
+            unprivileged_group[labels_col] == 0
+        ).sum()
+        P_unpriv_1_given_1 = ((unprivileged_group[labels_col] == 1) & (unprivileged_group[preds_col] == 1)).sum() / (
+            unprivileged_group[labels_col] == 1
+        ).sum()
+
+        # Overall Accuracy Equality check
+        overall_accuracy_priv = P_priv_0_given_0 + P_priv_1_given_1
+        overall_accuracy_unpriv = P_unpriv_0_given_0 + P_unpriv_1_given_1
+
+        # Example usage:
+        # df is a pandas dataframe with binary columns 'labels', 'predictions', and 'sensitive'
+        # overall_accuracy_equality(df, 'labels', 'predictions', 'sensitive')
+        return overall_accuracy_priv, overall_accuracy_unpriv, abs(overall_accuracy_priv - overall_accuracy_unpriv)
+
+    @staticmethod
+    def conditional_metrics_scores_aif360(
+        df, y_pred, sensitive_attr="SEX", unprivileged_groups=[{"SEX": 2.0}], privileged_groups=[{"SEX": 1.0}]
+    ):
         """Calculate the performance scores using the AIF360 library
 
         Args:
@@ -50,14 +84,11 @@ class Metrics:
         if "y_pred" in df.columns:
             df = df.drop(columns=["y_pred"])
 
-        privileged_groups = [{"SEX": 1.0}]
-        unprivileged_groups = [{"SEX": 2.0}]
-
         test_standard = StandardDataset(
             df=df,
             label_name="LABELS",
             favorable_classes=[1.0],
-            protected_attribute_names=["SEX"],
+            protected_attribute_names=[sensitive_attr],
             privileged_classes=[[1.0]],
         )
 
@@ -71,6 +102,17 @@ class Metrics:
             privileged_groups=privileged_groups,
         )
         _aif360_metrics = {}
+
+        # # Calculate the proportion of positive predictions for each group
+        # positive_rate_privileged = aif360_metrics.base_rate(privileged=True)
+        # positive_rate_unprivileged = aif360_metrics.base_rate(privileged=False)
+        # # Calculate Statistical Parity Difference (SPD)
+        # spd = positive_rate_unprivileged - positive_rate_privileged
+        # print(
+        #     f"Positive rate privileged: {positive_rate_privileged}\n",
+        #     f"Positive rate unprivileged: {positive_rate_unprivileged}\n",
+        #     f"Statistical Parity Difference : {spd}",
+        # )
 
         # Alterando nomes das chaves no novo dicionário para evitar duplicações
         _unp = aif360_metrics.performance_measures(privileged=False)
@@ -92,7 +134,9 @@ class Metrics:
         return _aif360_metrics
 
     @staticmethod
-    def metrics_scores_aif360(df, y_pred, unprivileged_groups=None, privileged_groups=None):
+    def metrics_scores_aif360(
+        df, y_pred, sensitive_attr="SEX", unprivileged_groups=[{"SEX": 2.0}], privileged_groups=[{"SEX": 1.0}]
+    ):
         """Calculate the performance scores using the AIF360 library
 
         Args:
@@ -110,20 +154,18 @@ class Metrics:
         # TODO: add privileged and unprivileged groups in the model initialization
         from aif360.datasets import StandardDataset
         from aif360.metrics import MDSSClassificationMetric
+        from aif360.metrics import ClassificationMetric
 
         # https://aif360.readthedocs.io/en/stable/modules/generated/aif360.metrics.MDSSClassificationMetric.html#aif360.metrics.MDSSClassificationMetric
         # check if df has the column called "y_pred", if yes dropped
         if "y_pred" in df.columns:
             df = df.drop(columns=["y_pred"])
 
-        privileged_groups = [{"SEX": 1.0}]
-        unprivileged_groups = [{"SEX": 2.0}]
-
         test_standard = StandardDataset(
             df=df,
             label_name="LABELS",
             favorable_classes=[1.0],
-            protected_attribute_names=["SEX"],
+            protected_attribute_names=[sensitive_attr],
             privileged_classes=[[1.0]],
         )
 
@@ -137,13 +179,30 @@ class Metrics:
             privileged_groups=privileged_groups,
         )
 
+        aif360_metrics_2 = ClassificationMetric(
+            test_standard,
+            test_standard_pred,
+            unprivileged_groups=unprivileged_groups,
+            privileged_groups=privileged_groups,
+        )
+
         _aif360_metrics = aif360_metrics.performance_measures()
         _aif360_metrics["BAL_ACC"] = balanced_accuracy_score(test_standard.labels, test_standard_pred.labels)
 
-        _aif360_metrics["ABS_AVG_ODDS_DIFF"] = aif360_metrics.average_abs_odds_difference()
-        _aif360_metrics["EQ_OPP_DIFF"] = aif360_metrics.equal_opportunity_difference()  # true positive rate difference
         _aif360_metrics["DI"] = aif360_metrics.disparate_impact()
+        _aif360_metrics["EQ_OPP_DIFF"] = aif360_metrics.equal_opportunity_difference()  # true positive rate difference
         _aif360_metrics["STAT_PAR_DIFF"] = aif360_metrics.statistical_parity_difference()
+
+        _aif360_metrics["TPR_DIFF"] = aif360_metrics_2.true_positive_rate_difference()
+        _aif360_metrics["EQ_ODDS_DIFF"] = aif360_metrics_2.equalized_odds_difference()
+        _aif360_metrics["AVG_PRED_VALUE_DIFF"] = aif360_metrics_2.average_predictive_value_difference()
+        _aif360_metrics["AVG_ODDS_DIFF"] = aif360_metrics_2.average_odds_difference()
+        _aif360_metrics["ER_DIFF"] = aif360_metrics_2.error_rate_difference()
+        _aif360_metrics["FDR_DIFF"] = aif360_metrics_2.false_discovery_rate_difference()
+        _aif360_metrics["FNR_DIFF"] = aif360_metrics_2.false_negative_rate_difference()
+        _aif360_metrics["FOR_DIFF"] = aif360_metrics_2.false_omission_rate_difference()
+        _aif360_metrics["FPR_DIFF"] = aif360_metrics_2.false_positive_rate_difference()
+        _aif360_metrics["TPR_DIFF"] = aif360_metrics_2.true_positive_rate_difference()
 
         return _aif360_metrics
 

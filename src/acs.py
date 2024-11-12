@@ -1,12 +1,8 @@
-import os
-import sys
-
-import numpy as np
 import pandas as pd
-from folktables import ACSDataSource, ACSEmployment, ACSIncome
+from folktables import ACSDataSource
 from sklearn.preprocessing import StandardScaler
 
-import src.utils.data_helper as helper
+import src.utils.helper as helper
 
 """
 Some categorias are similiar to the ones in the employment dataset
@@ -101,8 +97,17 @@ def group_race(x):
         return x  # 1. White, 2. Black, 3. Asian, 4. America Native and Alaska Native, 5. Some Other, 6. Two or More
 
 
+def _group_race(x):
+    if x == 3.0 or x == 4.0 or x == 5.0 or x == 7.0 or x == 8.0 or x == 9.0:
+        return 4.0
+    if x == 6.0:
+        return 3.0  # Asian
+    else:
+        return x  # 1. White, 2. Black, 3. Asian, 4.Others
+
+
 class ACSDataset:
-    def __init__(self, survey_year="2014", US_states=["CA", "TX"], horizon="1-Year", survey="person"):
+    def __init__(self, survey_year="2017", US_states=["LA", "MI"], horizon="1-Year", survey="person"):
         self.survey_year = survey_year
         self.horizon = horizon
         self.survey = survey
@@ -110,9 +115,17 @@ class ACSDataset:
 
     def task_task(self, task_name: str):
         if task_name == "employment":
-            return ACSEmployment
+            from folktables import ACSEmploymentFiltered
+
+            return ACSEmploymentFiltered
         elif task_name == "income":
+            from folktables import ACSIncome
+
             return ACSIncome
+        elif task_name == "public_coverage":
+            from folktables import ACSPublicCoverage
+
+            return ACSPublicCoverage
         else:
             raise AttributeError("Attribute not found")
 
@@ -126,6 +139,11 @@ class ACSDataset:
         # 1. White, 2. Black, 3. Asian, 4. America Native and Alaska Native, 5. Some Other, 6. Two or More
         features["RACE"] = features["RAC1P"].apply(lambda x: group_race(x))
         features = features.drop(columns=["RAC1P"])
+
+        if task_name == "employment":
+            # keep only the features with RACE as black and white:
+            features = features[features["RACE"].isin([1.0, 2.0])]
+
         # raw labels are boolean, we need to convert them to int
         labels = labels.astype(int)
         features["LABELS"] = labels
@@ -141,7 +159,7 @@ class ACSDataset:
         else:
             return "return_type not found"
 
-    def split_data(self, df, test_size=0.2, random_state=42, stratify=None, dtype=None):
+    def split_data(self, df: pd.DataFrame, test_size: float = 0.2, random_state: int = 42, stratify=None, dtype=None):
         from sklearn.model_selection import train_test_split
 
         train, test = train_test_split(df, test_size=test_size, random_state=random_state, stratify=stratify)
@@ -152,7 +170,6 @@ class ACSDataset:
             return train, test
 
     def preprocess_data(self, df: pd.DataFrame, categorical_features: list = [], dtype=None):
-
         features_list_not_labels = df.columns.to_list()[:-1]
 
         # check if there is duplications and remove them
