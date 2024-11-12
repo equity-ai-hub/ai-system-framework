@@ -184,3 +184,35 @@ def load_data_and_model(dataset_name, choosed_model, scores):
     test_oh, test = load_test_data(dataset_name)
 
     return model, train, train_oh, val, val_oh, test, test_oh
+
+
+# aux functions - calibration
+# Credits: https://cdeiuk.github.io/bias-mitigation/additional-resources
+def calibration_probabilities(labels, scores, n_bins=10):
+    """
+    Computes calibration probabilities for a set of scores and labels.
+    obs: per bin (i.e. P(Y = 1 | score))
+    """
+    bins = np.linspace(0, 1, n_bins + 1)
+    probs = np.zeros(n_bins)
+
+    for i, (low, high) in enumerate(zip(bins[:-1], bins[1:])):
+        if high == 1:
+            high = 1.01  # allow equality with one in the final bin
+        mask = (scores >= low) & (scores < high)
+        probs[i] = labels[mask].mean()
+    return probs
+
+
+def calibration_difference(labels, scores, attr, n_bins=10):
+    """
+    Computes average calibration difference between sensitive attributes.
+    Obs: Binary sensitive attribute (0, 1)
+    """
+    mask = attr == 1  # sensitive attribute mask, 1 holds for the positive class
+
+    a0_calibration_probabilities = calibration_probabilities(labels[~mask], scores[~mask], n_bins)
+    a1_calibration_probabilities = calibration_probabilities(labels[mask], scores[mask], n_bins)
+
+    # if a bin is empty we get a nan, so use nanmean to aggregate only over mutually non-empty bins
+    return np.nanmean(np.abs(a0_calibration_probabilities - a1_calibration_probabilities))
