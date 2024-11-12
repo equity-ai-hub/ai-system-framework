@@ -1,6 +1,6 @@
+import dill
 import joblib
 import pandas as pd
-import dill
 
 
 def _get_model_and_data_local(selected_model: str, fold_num: int, local_data_path: str = None):

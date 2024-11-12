@@ -2,10 +2,12 @@ import os
 
 import numpy as np
 import pandas as pd
+from aif360.algorithms.postprocessing.calibrated_eq_odds_postprocessing import (
+    CalibratedEqOddsPostprocessing,
+)
 from aif360.datasets import StandardDataset
 
 import src.interventions.utils as utils
-from aif360.algorithms.postprocessing.calibrated_eq_odds_postprocessing import CalibratedEqOddsPostprocessing
 from src.metrics import Metrics
 
 

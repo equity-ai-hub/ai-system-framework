@@ -1,17 +1,14 @@
 """ Get data from Folktable and process it for ACS baseline model."""
 
-import io
-import logging
 import os
 import warnings
-from pathlib import Path
 
 import pandas as pd
 
 from src.acs import ACSDataset
 
-
 warnings.filterwarnings("ignore")
+
 
 def split_dataset(df, test_size=0.2, random_state=42, stratify=None):
     from sklearn.model_selection import train_test_split
@@ -77,7 +74,7 @@ def process_acs_data(acs_task: str = "employment", data_path: str = None):
     # fmt: off
     if acs_task == "employment":
         cat_features = ["MAR", "DIS", "CIT", "MIG", "MIL", "ANC", "NATIVITY",
-                                "DEAR", "DEYE", "DREAM", "SEX", "RACE"]
+                        "DEAR", "DEYE", "DREAM", "SEX", "RACE"]
     elif acs_task == "income":
         cat_features = ["COW", "SCHL", "MAR", "SEX", "RACE"]
     # fmt: on
@@ -140,7 +137,7 @@ def models_evaluation(selected_model: str, dataset_id: str, num_folds: int = 10,
         model_pck = f"{artifacts}/fold_{fold}/{selected_model}.pkl"
         model = joblib.load(model_pck)
 
-        y_true = df_test_onehot["LABELS"]
+        # y_true = df_test_onehot["LABELS"]
         y_fold_pred = model.predict(df_test_onehot.drop(columns=["LABELS"]))
         y_fold_pred_prob = model.predict_proba(df_test_onehot.drop(columns=["LABELS"]))[:, 1]
         # test_pred = test_prob > 0.5
@@ -148,7 +145,7 @@ def models_evaluation(selected_model: str, dataset_id: str, num_folds: int = 10,
         y_pred = pd.Series(y_fold_pred, name="y_pred", index=df_test_onehot.index)
         y_pred_prob = pd.Series(y_fold_pred_prob, name="y_pred_proba", index=df_test_onehot.index)
 
-        _df_pred = pd.concat([df_test_preproc, y_pred, y_pred_prob], axis=1)
+        _df_pred = pd.concat([df_test_preproc, y_pred, y_pred_prob], axis=1)  # noqa
 
         base_predictions[f"fold_{fold}"] = pd.Series(y_pred)
         scores[f"fold_{fold}"] = Metrics.metrics_scores_aif360(df=df_test_preproc, y_pred=y_pred)

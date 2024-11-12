@@ -4,9 +4,6 @@ import numpy as np
 import pandas as pd
 from aif360.algorithms.preprocessing import Reweighing
 from aif360.datasets import StandardDataset
-
-import src.interventions.utils as utils
-from src.metrics import Metrics
 from fairlearn.metrics import demographic_parity_difference
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -14,6 +11,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
+
+import src.interventions.utils as utils
+from src.metrics import Metrics
 
 
 def get_model_to_retrain(model_name: str):

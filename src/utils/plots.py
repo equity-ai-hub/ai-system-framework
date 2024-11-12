@@ -1,12 +1,11 @@
 import pathlib
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-import plotly.express as px
-
 
 ROOT_PATH = pathlib.Path(__file__).parent.parent.absolute()
 PATH_TO_SAVE = f"{ROOT_PATH}/assets/baseline/"
@@ -364,8 +363,6 @@ def plot_group_bar_metrics(scores, interventions, title):
     import numpy as np
     import plotly.graph_objects as go
 
-    import src.utils.plots_helper as ph
-
     fig = go.Figure()
 
     width = 0.2
@@ -534,7 +531,6 @@ def group_box_plots(group_type, test_set, test_prob, groups=None, group_names=No
 def plot_conditional_separation(scores_sep, scores_base, title):
     # https://plotly.com/python/marker-style/
     import plotly.graph_objects as go
-    import src.utils.plots_helper as ph
 
     scatter_x = scores_base.index.tolist()
     scatter_y = scores_base.values.tolist()
@@ -682,7 +678,6 @@ def calibration_curves(labels, scores, attr, title="", xlabel="", ylabel="", n_b
 
 
 def create_custom_boxplot(data_lists, labels, legend_labels=["Females", "Males"]):
-
     fig, ax = plt.subplots(figsize=(6, 4))
     num_groups = len(data_lists)
     group_width = 1

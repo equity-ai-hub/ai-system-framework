@@ -1,13 +1,11 @@
 import numpy as np
 from scipy import stats
-from sklearn.metrics import (
+from sklearn.metrics import (  # roc_curve,; precision_recall_curve,
     balanced_accuracy_score,
     classification_report,
     confusion_matrix,
     f1_score,
     roc_auc_score,
-    # roc_curve,
-    # precision_recall_curve,
 )
 
 
@@ -153,8 +151,7 @@ class Metrics:
         """
         # TODO: add privileged and unprivileged groups in the model initialization
         from aif360.datasets import StandardDataset
-        from aif360.metrics import MDSSClassificationMetric
-        from aif360.metrics import ClassificationMetric
+        from aif360.metrics import ClassificationMetric, MDSSClassificationMetric
 
         # https://aif360.readthedocs.io/en/stable/modules/generated/aif360.metrics.MDSSClassificationMetric.html#aif360.metrics.MDSSClassificationMetric
         # check if df has the column called "y_pred", if yes dropped

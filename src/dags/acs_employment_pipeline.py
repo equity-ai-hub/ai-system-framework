@@ -6,15 +6,15 @@ from pathlib import Path
 from airflow import DAG  # type: ignore
 from airflow.operators.python import PythonOperator  # type: ignore
 
+from src.interventions.hardt2016 import threshold_modification
+from src.interventions.kamiran_calders2012 import data_reweighing
+from src.interventions.pleiss2017 import calibration
 from src.utils.acs_pipeline_functions import (
     download_acs_data,
     models_evaluation,
     process_acs_data,
     run_model_train,
 )
-from src.interventions.pleiss2017 import calibration
-from src.interventions.hardt2016 import threshold_modification
-from src.interventions.kamiran_calders2012 import data_reweighing
 
 ROOT_PATH = str(Path(__file__).parent.parent)
 DATA_PATH = f"{ROOT_PATH}/src/data"

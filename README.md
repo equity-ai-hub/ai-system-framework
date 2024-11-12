@@ -29,7 +29,7 @@ NOTES:
 - Acess the airflow in localhost:8080
 - To log in the UI: Username: `airflow`; Password : `airflow`
 - The Airflow UI should be same as showing below.
-- All modifications made in the `src` folder or in the dags folder implementations, will be reflected in the Airflow UI even with the docker image being up and running. 
+- All modifications made in the `src` folder or in the dags folder implementations, will be reflected in the Airflow UI even with the docker image being up and running.
 - To stop the docker to run, just go to the terminal and `docker compose down`.
 - For more information about the aiflow implementations [read the docs](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
 - Airflow has a lot of dags implemented as examples, that new users can copy and paste to modify for the necessary needs. To see all the examples in UI, stop the docker image, go to the `docker-compose.yaml` and change the parameter: `AIRFLOW__CORE__LOAD_EXAMPLES: 'false'` to `true`. All the aiflow dags examples will be showing in the UI, with the respective code.
