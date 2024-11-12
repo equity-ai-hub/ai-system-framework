@@ -140,8 +140,11 @@ class ACSDataset:
         features["RACE"] = features["RAC1P"].apply(lambda x: group_race(x))
         features = features.drop(columns=["RAC1P"])
 
-        if task_name == "employment":
+        if task_name == "employment" or "public_coverage":
             # keep only the features with RACE as black and white:
+            # the current implementation works only for binary sensitive features
+            # the experiments using employment and public coverage dataset, consider race
+            # as a binary sensitive feature
             features = features[features["RACE"].isin([1.0, 2.0])]
 
         # raw labels are boolean, we need to convert them to int

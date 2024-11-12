@@ -19,6 +19,10 @@ from src.interventions.kamiran_calders2012 import data_reweighing
 ROOT_PATH = str(Path(__file__).parent.parent)
 DATA_PATH = f"{ROOT_PATH}/src/data"
 
+sensitive_attr = "SEX"
+privileged_groups = [{"SEX": 1.0}]
+unprivileged_groups = [{"SEX": 2.0}]
+
 default_args = {
     "owner": "admin",
     "depends_on_past": False,
@@ -56,7 +60,15 @@ with DAG(
     train_logreg = PythonOperator(
         task_id="train_logreg",
         python_callable=run_model_train,
-        op_args=["logistic_regression", "income", "train", DATA_PATH],
+        op_args=[
+            "logistic_regression",
+            "income",
+            "train",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -64,7 +76,15 @@ with DAG(
     train_random_forest = PythonOperator(
         task_id="train_random_forest",
         python_callable=run_model_train,
-        op_args=["random_forest", "income", "train", DATA_PATH],
+        op_args=[
+            "random_forest",
+            "income",
+            "train",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -72,7 +92,15 @@ with DAG(
     train_xgboost = PythonOperator(
         task_id="train_xgboost",
         python_callable=run_model_train,
-        op_args=["xgboost", "income", "train", DATA_PATH],
+        op_args=[
+            "xgboost",
+            "income",
+            "train",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -80,7 +108,15 @@ with DAG(
     train_dec_tree = PythonOperator(
         task_id="train_dec_tree",
         python_callable=run_model_train,
-        op_args=["decision_tree", "income", "train", DATA_PATH],
+        op_args=[
+            "decision_tree",
+            "income",
+            "train",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -88,7 +124,15 @@ with DAG(
     train_mlp = PythonOperator(
         task_id="train_mlp",
         python_callable=run_model_train,
-        op_args=["mlp", "income", "train", DATA_PATH],
+        op_args=[
+            "mlp",
+            "income",
+            "train",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -96,7 +140,14 @@ with DAG(
     baseline_model_eval = PythonOperator(
         task_id="baseline_model_eval",
         python_callable=models_evaluation,
-        op_args=["XGBClassifier", "income", DATA_PATH],
+        op_args=[
+            "XGBClassifier",
+            "income",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -104,7 +155,14 @@ with DAG(
     separation_intv_eval = PythonOperator(
         task_id="separation_intv_model_eval",
         python_callable=threshold_modification,
-        op_args=["income", "XGBClassifier", DATA_PATH],
+        op_args=[
+            "income",
+            "XGBClassifier",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -112,7 +170,14 @@ with DAG(
     indenpendence_intv_eval = PythonOperator(
         task_id="independence_intv_model_eval",
         python_callable=data_reweighing,
-        op_args=["income", "XGBClassifier", DATA_PATH],
+        op_args=[
+            "income",
+            "XGBClassifier",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
@@ -120,7 +185,14 @@ with DAG(
     sufficiency_intv_eval = PythonOperator(
         task_id="sufficiency_intv_model_eval",
         python_callable=calibration,
-        op_args=["income", "XGBClassifier", DATA_PATH, "weighted"],
+        op_args=[
+            "income",
+            "XGBClassifier",
+            DATA_PATH,
+            sensitive_attr,
+            privileged_groups,
+            unprivileged_groups,
+        ],
         show_return_value_in_logs=True,
         dag=dag,
     )
