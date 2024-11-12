@@ -8,18 +8,18 @@ version = "0.1.0"
 description = ""
 authors = [{name="Jane Doe", email="janedoe@mail.com"}]
 readme = "README.md"
-license = { "text"= "MIT" } 
+license = { "text"= "MIT" }
 requires-python = ">=3.9,<3.13"
 
 dependencies = [
     "scipy>=1.11.2",
     "seaborn>=0.12.2",
-    "pandas>=2.0.3",
-    "numpy>=1.25.2",
+    "pandas == 2.0.3",
+    "numpy == 1.26.4",
     "scikit-learn>=1.3.0",
     "imblearn>=0.0",
     "xgboost>=2.0.0",
-    "aif360>=0.5.0",
+    "aif360 == 0.6.1",
     "blackboxauditing>=0.1.54",
     "folktables>=0.0.12",
     "pre-commit>=3.6.2",
@@ -29,6 +29,8 @@ dependencies = [
     "gcloud>=0.18.3",
     "google>=3.0.0",
     "google-cloud-storage>=2.16.0",
+    "dill == 0.3.8",
+    "fairlearn==0.10.0",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +49,7 @@ dev = [
     "joblib>=1.3.2",
     "ydata-profiling>=4.7.0",
     "sweetviz>=2.3.1",
+    "apache-airflow==2.9.0"
 ]
 
 [tool.setuptools.packages.find]
