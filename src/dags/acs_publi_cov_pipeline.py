@@ -73,75 +73,11 @@ with DAG(
         dag=dag,
     )
 
-    train_random_forest = PythonOperator(
-        task_id="train_random_forest",
-        python_callable=run_model_train,
-        op_args=[
-            "random_forest",
-            "public_coverage",
-            "train",
-            DATA_PATH,
-            sensitive_attr,
-            privileged_groups,
-            unprivileged_groups,
-        ],
-        show_return_value_in_logs=True,
-        dag=dag,
-    )
-
-    train_xgboost = PythonOperator(
-        task_id="train_xgboost",
-        python_callable=run_model_train,
-        op_args=[
-            "xgboost",
-            "public_coverage",
-            "train",
-            DATA_PATH,
-            sensitive_attr,
-            privileged_groups,
-            unprivileged_groups,
-        ],
-        show_return_value_in_logs=True,
-        dag=dag,
-    )
-
-    train_dec_tree = PythonOperator(
-        task_id="train_dec_tree",
-        python_callable=run_model_train,
-        op_args=[
-            "decision_tree",
-            "public_coverage",
-            "train",
-            DATA_PATH,
-            sensitive_attr,
-            privileged_groups,
-            unprivileged_groups,
-        ],
-        show_return_value_in_logs=True,
-        dag=dag,
-    )
-
-    train_mlp = PythonOperator(
-        task_id="train_mlp",
-        python_callable=run_model_train,
-        op_args=[
-            "mlp",
-            "public_coverage",
-            "train",
-            DATA_PATH,
-            sensitive_attr,
-            privileged_groups,
-            unprivileged_groups,
-        ],
-        show_return_value_in_logs=True,
-        dag=dag,
-    )
-
     baseline_model_eval = PythonOperator(
         task_id="baseline_model_eval",
         python_callable=models_evaluation,
         op_args=[
-            "XGBClassifier",
+            "LogisticRegression",
             "public_coverage",
             DATA_PATH,
             sensitive_attr,
@@ -157,7 +93,7 @@ with DAG(
         python_callable=threshold_modification,
         op_args=[
             "public_coverage",
-            "XGBClassifier",
+            "LogisticRegression",
             DATA_PATH,
             sensitive_attr,
             privileged_groups,
@@ -172,7 +108,7 @@ with DAG(
         python_callable=data_reweighing,
         op_args=[
             "public_coverage",
-            "XGBClassifier",
+            "LogisticRegression",
             DATA_PATH,
             sensitive_attr,
             privileged_groups,
@@ -187,7 +123,7 @@ with DAG(
         python_callable=calibration,
         op_args=[
             "public_coverage",
-            "XGBClassifier",
+            "LogisticRegression",
             DATA_PATH,
             sensitive_attr,
             privileged_groups,
@@ -198,9 +134,9 @@ with DAG(
     )
 
     (
-        download >> process >> [train_logreg, train_random_forest],
-        process >> [train_xgboost, train_dec_tree, train_mlp],
-        train_xgboost
+        download
+        >> process
+        >> train_logreg
         >> baseline_model_eval
         >> [
             separation_intv_eval,

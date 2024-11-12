@@ -63,7 +63,7 @@ def process_acs_data(acs_task: str = "employment", data_path: str = None):
     elif acs_task == "income":
         cat_features = ["COW", "SCHL", "MAR", "SEX", "RACE"]
     elif acs_task == "public_coverage":
-        cat_features = ["SCHL", "MAR", "SEX", "DIS", "CIT", "MIG", "MIL",
+        cat_features = ["ESP", "MAR", "SEX", "DIS", "CIT", "MIG", "MIL",
                         "ANC", "NATIVITY", "DEAR", "DEYE", "DREM", "ESR",
                         "ST", "FER", "RACE"]
 
